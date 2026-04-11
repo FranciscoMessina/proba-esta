@@ -660,6 +660,42 @@ function continuousFractileFormulaProps(
   }
 }
 
+function continuousGuaranteedFractileFormulaProps(
+  rows: readonly GroupedContinuousFrequencyRow[],
+  guaranteedProbability: number | null
+): StatFormulaDialogProps | null {
+  if (guaranteedProbability === null) {
+    return null
+  }
+
+  const leftProbability = 1 - guaranteedProbability
+  if (leftProbability <= Number.EPSILON || leftProbability > 1) {
+    return null
+  }
+
+  const resolution = resolveGroupedContinuousFractile(rows, leftProbability)
+  if (!resolution) {
+    return null
+  }
+
+  const { row } = resolution
+
+  return {
+    title: `Rendimiento garantizado para el ${fmtNumber(guaranteedProbability * 100, 2)}%`,
+    generalLatex: "P(X\\geq x_g)=g \\Rightarrow x_g = X_{1-g}",
+    substitutedLatex: alignedLatex([
+      `g = ${latexNum(guaranteedProbability, 4)}`,
+      `F(x_g) = 1 - g = 1 - ${latexNum(guaranteedProbability, 4)} = ${latexNum(leftProbability, 4)}`,
+      `x_g = X_{${latexNum(leftProbability, 4)}}`,
+      `x_g\\ \\text{se encuentra en}\\ I_${row.item} = ${latexInterval(row)}`,
+      `x_g = ${latexNum(row.lowerLimit)} + ${latexNum(row.amplitude)}\\left[\\dfrac{(${resolution.totalFrequency}\\cdot${latexNum(leftProbability, 4)})-${latexNum(resolution.previousAbsoluteCumulativeFrequency, 4)}}{${row.absoluteFrequency}}\\right]`,
+      `x_g = ${latexNum(row.lowerLimit)} + ${latexNum(row.amplitude)}\\left[\\dfrac{${latexNum(resolution.targetPosition, 4)}-${latexNum(resolution.previousAbsoluteCumulativeFrequency, 4)}}{${row.absoluteFrequency}}\\right] = ${latexNum(resolution.value, 4)}`,
+    ]),
+    explanation:
+      "El valor garantizado para g se obtiene buscando el fractil complementario 1-g, porque ese porcentaje queda acumulado a la izquierda.",
+  }
+}
+
 function continuousInverseFractileFormulaProps(
   rows: readonly GroupedContinuousFrequencyRow[],
   value: number | null
@@ -940,6 +976,7 @@ function StatRow({
 function VariablesContinuasPage() {
   const [rows, setRows] = useState<EditableContinuousRow[]>([newEditableRow()])
   const [fractilePercent, setFractilePercent] = useState("50")
+  const [guaranteedPercent, setGuaranteedPercent] = useState("")
   const [fractileValue, setFractileValue] = useState("")
   const [fractileUpperValue, setFractileUpperValue] = useState("")
 
@@ -964,6 +1001,7 @@ function VariablesContinuasPage() {
 
   const derived = useMemo(() => buildDerivedContinuousTableState(rows), [rows])
   const parsedFractilePercent = parseFractilePercent(fractilePercent)
+  const parsedGuaranteedPercent = parseFractilePercent(guaranteedPercent)
   const parsedFractileValue = parseNumericToken(fractileValue)
   const parsedFractileUpperValue = parseNumericToken(fractileUpperValue)
   const fractileFromPercent =
@@ -971,6 +1009,17 @@ function VariablesContinuasPage() {
       ? resolveGroupedContinuousFractile(
           derived.stats.rows,
           parsedFractilePercent,
+        )
+      : null
+  const guaranteedLeftProbability =
+    parsedGuaranteedPercent === null ? null : 1 - parsedGuaranteedPercent
+  const guaranteedFractile =
+    derived.stats &&
+    guaranteedLeftProbability !== null &&
+    guaranteedLeftProbability > Number.EPSILON
+      ? resolveGroupedContinuousFractile(
+          derived.stats.rows,
+          guaranteedLeftProbability,
         )
       : null
   const fractileFromValue =
@@ -1012,6 +1061,12 @@ function VariablesContinuasPage() {
       : null
   const fractileFromPercentFormula = derived.stats
     ? continuousFractileFormulaProps(derived.stats.rows, parsedFractilePercent)
+    : null
+  const guaranteedFractileFormula = derived.stats
+    ? continuousGuaranteedFractileFormulaProps(
+        derived.stats.rows,
+        parsedGuaranteedPercent,
+      )
     : null
   const fractileFromValueFormula = derived.stats
     ? continuousInverseFractileFormulaProps(derived.stats.rows, parsedFractileValue)
@@ -1518,45 +1573,86 @@ function VariablesContinuasPage() {
           </h2>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             <div className="rounded-md bg-muted/20 px-3 py-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-medium">Desde porcentaje</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Ingresá el porcentaje acumulado a la izquierda y se interpola
-                    el valor correspondiente dentro del intervalo.
-                  </p>
-                </div>
-                {fractileFromPercentFormula ? (
-                  <StatFormulaDialog {...fractileFromPercentFormula} />
-                ) : null}
+              <div>
+                <h3 className="text-sm font-medium">Desde porcentaje</h3>
+                <p className="text-xs text-muted-foreground">
+                  Podés calcular tanto el porcentaje acumulado a la izquierda
+                  como el rendimiento garantizado para un porcentaje dado de
+                  establecimientos.
+                </p>
               </div>
               <div className="mt-3 flex flex-col gap-3">
-                <div className="w-full">
-                  <label
-                    htmlFor="continuous-fractile-percent"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    Porcentaje acumulado a la izquierda
-                  </label>
-                  <Input
-                    id="continuous-fractile-percent"
-                    inputMode="decimal"
-                    className="mt-1"
-                    value={fractilePercent}
-                    onChange={(event) =>
-                      setFractilePercent(event.currentTarget.value)
-                    }
-                    placeholder="Ej. 90"
-                  />
-                </div>
-                <div className="min-w-0 rounded-md bg-background px-3 py-2">
-                  <div className="text-xs text-muted-foreground">
-                    {parsedFractilePercent === null
-                      ? "Ingresá un porcentaje entre 0 y 100."
-                      : `Fractil del ${fmtNumber(parsedFractilePercent * 100, 2)}%`}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="w-full">
+                    <label
+                      htmlFor="continuous-fractile-percent"
+                      className="text-xs font-medium text-muted-foreground"
+                    >
+                      Porcentaje acumulado a la izquierda
+                    </label>
+                    <Input
+                      id="continuous-fractile-percent"
+                      inputMode="decimal"
+                      className="mt-1"
+                      value={fractilePercent}
+                      onChange={(event) =>
+                        setFractilePercent(event.currentTarget.value)
+                      }
+                      placeholder="Ej. 4,5"
+                    />
                   </div>
-                  <div className="font-mono text-sm tabular-nums">
-                    {fmtOptionalNumber(fractileFromPercent?.value)}
+                  <div className="w-full">
+                    <label
+                      htmlFor="continuous-guaranteed-percent"
+                      className="text-xs font-medium text-muted-foreground"
+                    >
+                      Porcentaje garantizado a la derecha
+                    </label>
+                    <Input
+                      id="continuous-guaranteed-percent"
+                      inputMode="decimal"
+                      className="mt-1"
+                      value={guaranteedPercent}
+                      onChange={(event) =>
+                        setGuaranteedPercent(event.currentTarget.value)
+                      }
+                      placeholder="Ej. 95,5"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="min-w-0 rounded-md bg-background px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="text-xs text-muted-foreground">
+                        {parsedFractilePercent === null
+                          ? "Ingresá un porcentaje entre 0 y 100."
+                          : `Fractil del ${fmtNumber(parsedFractilePercent * 100, 2)}%`}
+                      </div>
+                      {fractileFromPercentFormula ? (
+                        <StatFormulaDialog {...fractileFromPercentFormula} />
+                      ) : null}
+                    </div>
+                    <div className="font-mono text-sm tabular-nums">
+                      {fmtOptionalNumber(fractileFromPercent?.value)}
+                    </div>
+                  </div>
+                  <div className="min-w-0 rounded-md bg-background px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="text-xs text-muted-foreground">
+                        {parsedGuaranteedPercent === null
+                          ? "Ingresá un porcentaje entre 0 y 100."
+                          : guaranteedLeftProbability !== null &&
+                              guaranteedLeftProbability > Number.EPSILON
+                            ? `Garantizado para el ${fmtNumber(parsedGuaranteedPercent * 100, 2)}% (acumulado izquierdo: ${fmtNumber(guaranteedLeftProbability * 100, 2)}%)`
+                            : "El 100% garantizado implicaría 0% acumulado a la izquierda."}
+                      </div>
+                      {guaranteedFractileFormula ? (
+                        <StatFormulaDialog {...guaranteedFractileFormula} />
+                      ) : null}
+                    </div>
+                    <div className="font-mono text-sm tabular-nums">
+                      {fmtOptionalNumber(guaranteedFractile?.value)}
+                    </div>
                   </div>
                 </div>
               </div>
