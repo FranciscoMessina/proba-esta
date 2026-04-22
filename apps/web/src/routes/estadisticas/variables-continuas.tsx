@@ -54,6 +54,11 @@ type DerivedContinuousTableState = {
   stats: GroupedContinuousDescriptiveStats | null
 }
 
+type ContinuousTableMeta = {
+  totalFrequency: number | null
+  media: number | null
+}
+
 function newEditableRow(): EditableContinuousRow {
   return {
     id: crypto.randomUUID(),
@@ -1151,10 +1156,6 @@ function VariablesContinuasPage() {
 
   const columns = useMemo<ColumnDef<EditableContinuousComputedRow>[]>(
     () => {
-      const media = derived.stats?.media ?? null
-      const sumaProductos = derived.stats?.sumaProductos ?? null
-      const sumaCuadradosDesvios = derived.stats?.sumaCuadradosDesvios ?? null
-
       return [
         {
           accessorKey: "item",
@@ -1208,12 +1209,12 @@ function VariablesContinuasPage() {
             />
           ),
           footer: ({ table }) =>
-            (table.options.meta as { totalFrequency?: number | null } | undefined)
+            (table.options.meta as ContinuousTableMeta | undefined)
               ?.totalFrequency === null ||
-              (table.options.meta as { totalFrequency?: number | null } | undefined)
-                ?.totalFrequency === undefined ? null : (
+            (table.options.meta as ContinuousTableMeta | undefined)
+              ?.totalFrequency === undefined ? null : (
               <InlineMath
-                math={`\\sum f_{ai} = n = ${(table.options.meta as { totalFrequency: number }).totalFrequency}`}
+                math={`\\sum f_{ai} = n = ${(table.options.meta as ContinuousTableMeta).totalFrequency}`}
               />
             ),
         },
@@ -1248,8 +1249,10 @@ function VariablesContinuasPage() {
           header: () => (
             <MathHeader label="" math="\left(C_i-\bar{x}\right)^2" />
           ),
-          cell: ({ row }) => {
+          cell: ({ row, table }) => {
             const computed = row.original.computed
+            const media = (table.options.meta as ContinuousTableMeta | undefined)
+              ?.media ?? null
             const value =
               computed && media !== null ? (computed.classMark - media) ** 2 : null
 
@@ -1265,8 +1268,10 @@ function VariablesContinuasPage() {
               mathClassName="whitespace-nowrap"
             />
           ),
-          cell: ({ row }) => {
+          cell: ({ row, table }) => {
             const computed = row.original.computed
+            const media = (table.options.meta as ContinuousTableMeta | undefined)
+              ?.media ?? null
             const value =
               computed && media !== null
                 ? computed.absoluteFrequency * (computed.classMark - media) ** 2
@@ -1290,10 +1295,10 @@ function VariablesContinuasPage() {
             />
           ),
           footer: ({ table }) =>
-            (table.options.meta as { totalFrequency?: number | null } | undefined)
+            (table.options.meta as ContinuousTableMeta | undefined)
               ?.totalFrequency === null ||
-              (table.options.meta as { totalFrequency?: number | null } | undefined)
-                ?.totalFrequency === undefined ? null : (
+            (table.options.meta as ContinuousTableMeta | undefined)
+              ?.totalFrequency === undefined ? null : (
               <InlineMath math={"\\sum f_i = 1"} />
             ),
         },
@@ -1372,7 +1377,7 @@ function VariablesContinuasPage() {
         },
       ]
     },
-    [derived.stats, removeRow, updateRow]
+    [removeRow, updateRow]
   )
 
   const table = useReactTable({
@@ -1382,6 +1387,7 @@ function VariablesContinuasPage() {
     getRowId: (row) => row.id,
     meta: {
       totalFrequency: derived.totalFrequency,
+      media: derived.stats?.media ?? null,
     },
   })
 
