@@ -87,7 +87,7 @@ function sumWeightedCenteredPowers(
 
 function sumWeightedAbsoluteDeviations(
   rows: readonly GroupedContinuousFrequencyRow[],
-  media: number,
+  media: number
 ): number {
   let sum = 0
 
@@ -147,7 +147,9 @@ function calculateVariationCoefficients(
   return {
     coeficienteVariacionPoblacional: desvioEstandar / Math.abs(media),
     coeficienteVariacionMuestral:
-      cuasiDesvioEstandar === null ? null : cuasiDesvioEstandar / Math.abs(media),
+      cuasiDesvioEstandar === null
+        ? null
+        : cuasiDesvioEstandar / Math.abs(media),
   }
 }
 
@@ -161,10 +163,7 @@ function calculateSkewness(
   sumaCubosDesvios: number | null
   momentoCentral3: number | null
 } {
-  if (
-    desvioEstandar === null ||
-    desvioEstandar <= Number.EPSILON
-  ) {
+  if (desvioEstandar === null || desvioEstandar <= Number.EPSILON) {
     return {
       coeficienteAsimetria: null,
       sumaCubosDesvios: null,
@@ -192,10 +191,7 @@ function calculateKurtosis(
   sumaCuartosDesvios: number | null
   momentoCentral4: number | null
 } {
-  if (
-    desvioEstandar === null ||
-    desvioEstandar <= Number.EPSILON
-  ) {
+  if (desvioEstandar === null || desvioEstandar <= Number.EPSILON) {
     return {
       coeficienteCurtosis: null,
       sumaCuartosDesvios: null,
@@ -218,9 +214,8 @@ function findMedianRow(
   targetPosition: number
 ): GroupedContinuousFrequencyRow | null {
   return (
-    rows.find(
-      (row) => row.leftAbsoluteCumulativeFrequency >= targetPosition
-    ) ?? null
+    rows.find((row) => row.leftAbsoluteCumulativeFrequency >= targetPosition) ??
+    null
   )
 }
 
@@ -238,7 +233,8 @@ function findRowContainingValue(
   }
 
   return (
-    rows.find((row) => value >= row.lowerLimit && value < row.upperLimit) ?? null
+    rows.find((row) => value >= row.lowerLimit && value < row.upperLimit) ??
+    null
   )
 }
 
@@ -260,7 +256,8 @@ export function computeGroupedContinuousDescriptiveStatsFromFrequencyTable(
 
   if (!medianRow) {
     return {
-      error: "No se pudo ubicar el intervalo mediano con las frecuencias acumuladas.",
+      error:
+        "No se pudo ubicar el intervalo mediano con las frecuencias acumuladas.",
     }
   }
 
@@ -283,10 +280,8 @@ export function computeGroupedContinuousDescriptiveStatsFromFrequencyTable(
     sumaCuadradosDesvios,
     totalFrequency
   )
-  const {
-    coeficienteVariacionPoblacional,
-    coeficienteVariacionMuestral,
-  } = calculateVariationCoefficients(media, desvioEstandar, cuasiDesvioEstandar)
+  const { coeficienteVariacionPoblacional, coeficienteVariacionMuestral } =
+    calculateVariationCoefficients(media, desvioEstandar, cuasiDesvioEstandar)
   const { coeficienteAsimetria, sumaCubosDesvios, momentoCentral3 } =
     calculateSkewness(rows, totalFrequency, media, desvioEstandar)
   const { coeficienteCurtosis, sumaCuartosDesvios, momentoCentral4 } =
@@ -323,13 +318,14 @@ export function computeGroupedContinuousDescriptiveStatsFromFrequencyTable(
 
 export function resolveGroupedContinuousFractile(
   rows: readonly GroupedContinuousFrequencyRow[],
-  probability: number,
+  probability: number
 ): GroupedContinuousFractileResolution | null {
   if (rows.length === 0 || probability <= 0 || probability > 1) {
     return null
   }
 
-  const totalFrequency = rows[rows.length - 1]?.leftAbsoluteCumulativeFrequency ?? 0
+  const totalFrequency =
+    rows[rows.length - 1]?.leftAbsoluteCumulativeFrequency ?? 0
   if (totalFrequency <= 0) {
     return null
   }
@@ -361,20 +357,21 @@ export function resolveGroupedContinuousFractile(
 
 export function computeGroupedContinuousFractile(
   rows: readonly GroupedContinuousFrequencyRow[],
-  probability: number,
+  probability: number
 ): number | null {
   return resolveGroupedContinuousFractile(rows, probability)?.value ?? null
 }
 
 export function resolveGroupedContinuousInverseFractile(
   rows: readonly GroupedContinuousFrequencyRow[],
-  value: number,
+  value: number
 ): GroupedContinuousInverseFractileResolution | null {
   if (rows.length === 0 || !Number.isFinite(value)) {
     return null
   }
 
-  const totalFrequency = rows[rows.length - 1]?.leftAbsoluteCumulativeFrequency ?? 0
+  const totalFrequency =
+    rows[rows.length - 1]?.leftAbsoluteCumulativeFrequency ?? 0
   if (totalFrequency <= 0) {
     return null
   }
@@ -391,7 +388,8 @@ export function resolveGroupedContinuousInverseFractile(
       ? 1
       : (value - row.lowerLimit) / row.amplitude
   const absolutePosition =
-    previousAbsoluteCumulativeFrequency + intervalProgress * row.absoluteFrequency
+    previousAbsoluteCumulativeFrequency +
+    intervalProgress * row.absoluteFrequency
 
   return {
     totalFrequency,

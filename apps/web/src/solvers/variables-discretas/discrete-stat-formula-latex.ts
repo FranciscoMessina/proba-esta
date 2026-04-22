@@ -1,3 +1,4 @@
+import { Discretas } from "@/latex/formulas"
 import type { DiscreteDescriptiveStats } from "./discrete-descriptive-stats"
 
 export type DiscreteStatFormulaId =
@@ -85,34 +86,47 @@ function modaFrequencies(values: readonly number[]): Map<number, number> {
 export function getDiscreteStatFormulaLatex(
   id: DiscreteStatFormulaId,
   stats: DiscreteDescriptiveStats,
-  values: readonly number[],
+  values: readonly number[]
 ): { general: string; substituted: string; explanation: string } | null {
   const { n, media, mediana, moda } = stats
 
   switch (id) {
     case "media": {
-      const general =
-        "\\bar{r} = \\dfrac{1}{n}\\sum_{i=1}^{n} r_i"
+      const general = Discretas.Media.General
       const sum = stats.sumaValores
-      const sub =
-        n <= 10
-          ? `\\bar{r} = \\dfrac{1}{${n}}(${values.map((x) => latexNum(x)).join("+")}) = \\dfrac{${latexNum(sum)}}{${n}} = ${latexNum(media)}`
-          : `\\bar{r} = \\dfrac{1}{n}\\sum_i r_i = \\dfrac{1}{${n}}\\cdot${latexNum(sum)} = ${latexNum(media)}`
-      return { general, substituted: sub, explanation: "La media o promedio es la suma de los valores dividido por el número de valores." }
+      const sub = Discretas.Media.Reemplazo(values, stats)
+      // n <= 10
+      //   ? `\\bar{r} = \\dfrac{1}{${n}}(${values.map((x) => latexNum(x)).join("+")}) = \\dfrac{${latexNum(sum)}}{${n}} = ${latexNum(media)}`
+      //   : `\\bar{r} = \\dfrac{1}{n}\\sum_i r_i = \\dfrac{1}{${n}}\\cdot${latexNum(sum)} = ${latexNum(media)}`
+      return {
+        general,
+        substituted: sub,
+        explanation:
+          "La media o promedio es la suma de los valores dividido por el número de valores.",
+      }
     }
     case "mediana": {
       const ord = sortedCopy(values)
       const xs = ord.map((x) => latexNum(x)).join(",\\;")
-      const general =
-        "Me = \\text{valor central de los datos ordenados}"
+      const general = "Me = \\text{valor central de los datos ordenados}"
       if (typeof mediana === "number") {
         const k = (n + 1) / 2
         const sub = `(${xs}) \\quad\\Rightarrow\\quad Me = r_{(${latexNum(k)})} = ${latexNum(mediana)}`
-        return { general, substituted: sub, explanation: "La mediana es el valor central de los datos ordenados. Si el número de datos es impar, es el valor central. Si el número de datos es par, es un valor indefinido entre los dos valores centrales." }
+        return {
+          general: Discretas.Mediana.General,
+          substituted: Discretas.Mediana.Reemplazo(values, stats),
+          explanation:
+            "La mediana es el valor central de los datos ordenados. Si el número de datos es impar, es el valor central. Si el número de datos es par, es un valor indefinido entre los dos valores centrales.",
+        }
       }
       const [a, b] = mediana
       const sub = `(${xs}) \\quad\\Rightarrow\\quad Me \\in \\{${latexNum(a)},\\;${latexNum(b)}\\}`
-      return { general, substituted: sub, explanation: "La mediana es el valor central de los datos ordenados. Si el número de datos es impar, es el valor central. Si el número de datos es par, es un valor indefinido entre los dos valores centrales." }
+      return {
+        general,
+        substituted: sub,
+        explanation:
+          "La mediana es el valor central de los datos ordenados. Si el número de datos es impar, es el valor central. Si el número de datos es par, es un valor indefinido entre los dos valores centrales.",
+      }
     }
     case "moda": {
       const byValue = modaFrequencies(values)
@@ -120,13 +134,13 @@ export function getDiscreteStatFormulaLatex(
         .sort((u, v) => u[0] - v[0])
         .map(([x, f]) => `f_a(${latexNum(x)})=${f}`)
         .join(",\\;")
-      const general =
-        "Mo = \\arg\\max_r f_a(r)"
+      const general = Discretas.Moda.General
       if (moda.length === 0 && n > 1) {
         return {
           general,
           substituted: `\\forall r,\\; f_a(r)=1 \\Rightarrow \\text{no hay moda clara.}`,
-          explanation: "La moda es el valor que aparece con mayor frecuencia en los datos. Puede haber más de una moda."
+          explanation:
+            "La moda es el valor que aparece con mayor frecuencia en los datos. Puede haber más de una moda.",
         }
       }
       if (moda.length === 0) {
@@ -134,7 +148,12 @@ export function getDiscreteStatFormulaLatex(
       }
       const modaStr = moda.map((m) => latexNum(m)).join(",\\;")
       const sub = `${pairs} \\quad\\Rightarrow\\quad Mo \\in \\{${modaStr}\\}`
-      return { general, substituted: sub, explanation: "La moda es el valor que aparece con mayor frecuencia en los datos. Puede haber más de una moda." }
+      return {
+        general,
+        substituted: sub,
+        explanation:
+          "La moda es el valor que aparece con mayor frecuencia en los datos. Puede haber más de una moda.",
+      }
     }
     case "desvioMedio": {
       const general =
@@ -143,7 +162,8 @@ export function getDiscreteStatFormulaLatex(
       return {
         general,
         substituted: sub,
-        explanation: "El desvío medio es el promedio de las desviaciones absolutas respecto de la media.",
+        explanation:
+          "El desvío medio es el promedio de las desviaciones absolutas respecto de la media.",
       }
     }
     case "rango": {
@@ -156,34 +176,48 @@ export function getDiscreteStatFormulaLatex(
       return {
         general: "R = r_{max} - r_{min}",
         substituted: `R = ${latexNum(max)} - ${latexNum(min)} = ${latexNum(stats.rango)}`,
-        explanation: "El rango es la diferencia entre el valor máximo y el valor mínimo observados.",
+        explanation:
+          "El rango es la diferencia entre el valor máximo y el valor mínimo observados.",
       }
     }
     case "varianza": {
       const ss = stats.sumaCuadradosDesvios
-      const general =
-        "\\sigma^2 = \\dfrac{1}{n}\\sum_{i=1}^{n}(r_i-\\bar{r})^2"
+      const general = "\\sigma^2 = \\dfrac{1}{n}\\sum_{i=1}^{n}(r_i-\\bar{r})^2"
       const sub = `\\sigma^2 = \\dfrac{1}{${n}}\\cdot${latexNum(ss)} = ${latexNum(stats.varianza)}`
-      return { general, substituted: sub, explanation: "La varianza es la suma de los cuadrados de las desviaciones de los valores respecto de la media, dividido por el número de valores." }
+      return {
+        general,
+        substituted: sub,
+        explanation:
+          "La varianza es la suma de los cuadrados de las desviaciones de los valores respecto de la media, dividido por el número de valores.",
+      }
     }
     case "cuasiVarianza": {
-      const general =
-        "s^2 = \\dfrac{1}{n-1}\\sum_{i=1}^{n}(r_i-\\bar{r})^2"
+      const general = "s^2 = \\dfrac{1}{n-1}\\sum_{i=1}^{n}(r_i-\\bar{r})^2"
       if (stats.cuasiVarianza === null) {
         return {
           general,
           substituted: `n = ${n} < 2 \\Rightarrow s^2\\ \\text{y } s\\ \\text{no se definen (muestra de un solo dato).}`,
-          explanation: "La cuasi-varianza es la suma de los cuadrados de las desviaciones de los valores respecto de la media, dividido por el número de valores menos uno."
+          explanation:
+            "La cuasi-varianza es la suma de los cuadrados de las desviaciones de los valores respecto de la media, dividido por el número de valores menos uno.",
         }
       }
       const ss = stats.sumaCuadradosDesvios
       const sub = `s^2 = \\dfrac{1}{${n - 1}}\\cdot${latexNum(ss)} = ${latexNum(stats.cuasiVarianza)}`
-      return { general, substituted: sub, explanation: "La cuasi-varianza es la suma de los cuadrados de las desviaciones de los valores respecto de la media, dividido por el número de valores menos uno." }
+      return {
+        general,
+        substituted: sub,
+        explanation:
+          "La cuasi-varianza es la suma de los cuadrados de las desviaciones de los valores respecto de la media, dividido por el número de valores menos uno.",
+      }
     }
     case "desvioEstandar": {
       const general = "\\sigma = \\sqrt{\\sigma^2}"
       const sub = `\\sigma = \\sqrt{${latexNum(stats.varianza)}} = ${latexNum(stats.desvioEstandar)}`
-      return { general, substituted: sub, explanation: "El desvío estándar es la raíz cuadrada de la varianza." }
+      return {
+        general,
+        substituted: sub,
+        explanation: "El desvío estándar es la raíz cuadrada de la varianza.",
+      }
     }
     case "cuasiDesvioEstandar": {
       const general = "s = \\sqrt{s^2}"
@@ -191,11 +225,17 @@ export function getDiscreteStatFormulaLatex(
         return {
           general,
           substituted: `n = ${n} < 2 \\Rightarrow s\\ \\text{no se define.}`,
-          explanation: "El cuasi-desvío estándar es la raíz cuadrada de la cuasi-varianza. "
+          explanation:
+            "El cuasi-desvío estándar es la raíz cuadrada de la cuasi-varianza. ",
         }
       }
       const sub = `s = \\sqrt{${latexNum(stats.cuasiVarianza!)}} = ${latexNum(stats.cuasiDesvioEstandar)}`
-      return { general, substituted: sub, explanation: "El cuasi-desvío estándar es la raíz cuadrada de la cuasi-varianza. " }
+      return {
+        general,
+        substituted: sub,
+        explanation:
+          "El cuasi-desvío estándar es la raíz cuadrada de la cuasi-varianza. ",
+      }
     }
     case "coeficienteVariacion": {
       const general =
@@ -238,8 +278,7 @@ export function getDiscreteStatFormulaLatex(
       if (stats.coeficienteAsimetria === null) {
         return {
           general,
-          substituted:
-            "σ \\approx 0 \\Rightarrow As\\ \\text{no se calcula.}",
+          substituted: "σ \\approx 0 \\Rightarrow As\\ \\text{no se calcula.}",
           explanation,
         }
       }
@@ -254,8 +293,7 @@ export function getDiscreteStatFormulaLatex(
           explanation,
         }
       }
-      const sub =
-        `As = \\dfrac{\\dfrac{${latexNum(stats.sumaCubosDesvios)}}{${n}}}{${latexNum(stats.desvioEstandar ** 3)}} = \\dfrac{${latexNum(stats.momentoCentral3)}}{${latexNum(stats.desvioEstandar ** 3)}} = ${latexNum(stats.coeficienteAsimetria)}`
+      const sub = `As = \\dfrac{\\dfrac{${latexNum(stats.sumaCubosDesvios)}}{${n}}}{${latexNum(stats.desvioEstandar ** 3)}} = \\dfrac{${latexNum(stats.momentoCentral3)}}{${latexNum(stats.desvioEstandar ** 3)}} = ${latexNum(stats.coeficienteAsimetria)}`
       return { general, substituted: sub, explanation }
     }
     case "coeficienteCurtosis": {
@@ -266,8 +304,7 @@ export function getDiscreteStatFormulaLatex(
       if (stats.coeficienteCurtosis === null) {
         return {
           general,
-          substituted:
-            "σ \\approx 0 \\Rightarrow Ku\\ \\text{no se calcula.}",
+          substituted: "σ \\approx 0 \\Rightarrow Ku\\ \\text{no se calcula.}",
           explanation,
         }
       }
@@ -282,8 +319,7 @@ export function getDiscreteStatFormulaLatex(
           explanation,
         }
       }
-      const sub =
-        `Ku = \\dfrac{\\dfrac{${latexNum(stats.sumaCuartosDesvios)}}{${n}}}{${latexNum(stats.desvioEstandar ** 4)}} = \\dfrac{${latexNum(stats.momentoCentral4)}}{${latexNum(stats.desvioEstandar ** 4)}} = ${latexNum(stats.coeficienteCurtosis)}`
+      const sub = `Ku = \\dfrac{\\dfrac{${latexNum(stats.sumaCuartosDesvios)}}{${n}}}{${latexNum(stats.desvioEstandar ** 4)}} = \\dfrac{${latexNum(stats.momentoCentral4)}}{${latexNum(stats.desvioEstandar ** 4)}} = ${latexNum(stats.coeficienteCurtosis)}`
       return {
         general,
         substituted: sub,

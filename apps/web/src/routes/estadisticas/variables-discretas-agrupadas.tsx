@@ -115,7 +115,7 @@ function parseFractilePercent(raw: string): number | null {
 }
 
 function formatDiscreteFractileResult(
-  result: number | readonly [number, number] | null,
+  result: number | readonly [number, number] | null
 ): string {
   if (result === null) {
     return "—"
@@ -763,7 +763,10 @@ function VariablesDiscretasAgrupadasPage() {
       {
         id: "relativeFrequency",
         header: () => (
-          <MathHeader label="Frecuencia relativa" math={"f_i = \\frac{f_{ai}}{n}"} />
+          <MathHeader
+            label="Frecuencia relativa"
+            math={"f_i = \\frac{f_{ai}}{n}"}
+          />
         ),
         cell: ({ row }) => (
           <ComputedCell
@@ -880,8 +883,8 @@ function VariablesDiscretasAgrupadasPage() {
 
       <div className="rounded-md border border-border px-4 py-3">
         <p className="text-sm text-muted-foreground">
-          Las frecuencias
-          acumuladas se calculan siguiendo el orden visible de la tabla, ingresar los valores de menor a mayor.
+          Las frecuencias acumuladas se calculan siguiendo el orden visible de
+          la tabla, ingresar los valores de menor a mayor.
         </p>
         {derived.totalFrequency !== null && derived.classCount !== null ? (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -894,7 +897,7 @@ function VariablesDiscretasAgrupadasPage() {
 
       <Separator />
 
-      <div className="min-w-0 max-w-full overflow-x-auto rounded-md border border-border">
+      <div className="max-w-full min-w-0 overflow-x-auto rounded-md border border-border">
         <table className="w-full min-w-[980px] border-collapse text-xs sm:text-sm">
           <thead className="bg-muted/40">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -907,9 +910,9 @@ function VariablesDiscretasAgrupadasPage() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </th>
                 ))}
               </tr>
@@ -945,9 +948,9 @@ function VariablesDiscretasAgrupadasPage() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.footer,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.footer,
+                          header.getContext()
+                        )}
                   </td>
                 ))}
               </tr>
@@ -972,19 +975,14 @@ function VariablesDiscretasAgrupadasPage() {
 
       {derived.stats ? (
         <div className="rounded-md border border-border px-4 py-2">
-          <h2 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <h2 className="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Resultados (n = {derived.stats.n})
           </h2>
           <div>
             <StatRow
               label="Media"
               value={fmtNumber(derived.stats.media)}
-
-              formula={groupedStatFormulaProps(
-                "media",
-                "Media",
-                derived.stats
-              )}
+              formula={groupedStatFormulaProps("media", "Media", derived.stats)}
             />
             <StatRow
               label="Mediana"
@@ -1013,11 +1011,7 @@ function VariablesDiscretasAgrupadasPage() {
             <StatRow
               label="Moda"
               value={formatGroupedMode(derived.stats)}
-              formula={groupedStatFormulaProps(
-                "moda",
-                "Moda",
-                derived.stats
-              )}
+              formula={groupedStatFormulaProps("moda", "Moda", derived.stats)}
             />
             <StatRow
               label="Desvío medio"
@@ -1031,11 +1025,7 @@ function VariablesDiscretasAgrupadasPage() {
             <StatRow
               label="Rango"
               value={fmtNumber(derived.stats.rango)}
-              formula={groupedStatFormulaProps(
-                "rango",
-                "Rango",
-                derived.stats
-              )}
+              formula={groupedStatFormulaProps("rango", "Rango", derived.stats)}
             />
             <StatRow
               label="Varianza"
@@ -1137,7 +1127,7 @@ function VariablesDiscretasAgrupadasPage() {
 
       {derived.stats ? (
         <div className="rounded-md border border-border px-4 py-3">
-          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Fractil
           </h2>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -1153,7 +1143,9 @@ function VariablesDiscretasAgrupadasPage() {
                 inputMode="decimal"
                 className="mt-1"
                 value={fractilePercent}
-                onChange={(event) => setFractilePercent(event.currentTarget.value)}
+                onChange={(event) =>
+                  setFractilePercent(event.currentTarget.value)
+                }
                 placeholder="Ej. 90"
               />
             </div>
@@ -1167,8 +1159,8 @@ function VariablesDiscretasAgrupadasPage() {
                 {formatDiscreteFractileResult(
                   computeGroupedDiscreteFractile(
                     derived.stats.rows,
-                    parseFractilePercent(fractilePercent) ?? 0,
-                  ),
+                    parseFractilePercent(fractilePercent) ?? 0
+                  )
                 )}
               </div>
             </div>

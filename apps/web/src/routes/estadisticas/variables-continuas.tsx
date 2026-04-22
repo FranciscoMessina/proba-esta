@@ -265,11 +265,21 @@ function buildDerivedContinuousTableState(
   }
 }
 
-function MathHeader({ label, math }: { label: string; math: string }) {
+function MathHeader({
+  label,
+  math,
+  mathClassName = "",
+}: {
+  label: string
+  math: string
+  mathClassName?: string
+}) {
   return (
-    <div className="flex flex-col gap-1">
-      <span>{label}</span>
-      <span className="text-[11px] font-normal text-muted-foreground normal-case">
+    <div className="flex flex-col gap-0.5 leading-tight">
+      <span className="leading-tight">{label}</span>
+      <span
+        className={`text-[11px] leading-none font-normal text-muted-foreground normal-case ${mathClassName}`.trim()}
+      >
         <InlineMath math={math} />
       </span>
     </div>
@@ -288,6 +298,31 @@ function ComputedCell({
       {value === null ? "—" : formatter(value)}
     </span>
   )
+}
+
+function getContinuousTableColumnClassName(columnId: string): string {
+  if (
+    columnId === "lowerLimit" ||
+    columnId === "upperLimit" ||
+    columnId === "absoluteFrequency"
+  ) {
+    return "w-[88px] min-w-[88px]"
+  }
+
+  if (
+    columnId === "leftAbsoluteCumulativeFrequency" ||
+    columnId === "leftRelativeCumulativeFrequency" ||
+    columnId === "rightAbsoluteCumulativeFrequency" ||
+    columnId === "rightRelativeCumulativeFrequency"
+  ) {
+    return "w-[80px] min-w-[80px]"
+  }
+
+  if (columnId === "weightedSquaredMeanDeviation") {
+    return "w-[152px] min-w-[152px]"
+  }
+
+  return ""
 }
 
 function continuousStatFormulaProps(
@@ -315,13 +350,13 @@ function continuousStatFormulaProps(
     const substituted =
       stats.rows.length <= 8
         ? alignedLatex([
-            `\\bar{x} = \\dfrac{${terms}}{${stats.n}}`,
-            `\\bar{x} = \\dfrac{${latexNum(stats.sumaProductos)}}{${stats.n}} = ${latexNum(stats.media)}`,
-          ])
+          `\\bar{x} = \\dfrac{${terms}}{${stats.n}}`,
+          `\\bar{x} = \\dfrac{${latexNum(stats.sumaProductos)}}{${stats.n}} = ${latexNum(stats.media)}`,
+        ])
         : alignedLatex([
-            `\\bar{x} = \\dfrac{1}{${stats.n}}\\sum_{i=1}^{${stats.rows.length}} C_i f_{ai}`,
-            `\\bar{x} = \\dfrac{${latexNum(stats.sumaProductos)}}{${stats.n}} = ${latexNum(stats.media)}`,
-          ])
+          `\\bar{x} = \\dfrac{1}{${stats.n}}\\sum_{i=1}^{${stats.rows.length}} C_i f_{ai}`,
+          `\\bar{x} = \\dfrac{${latexNum(stats.sumaProductos)}}{${stats.n}} = ${latexNum(stats.media)}`,
+        ])
 
     return {
       title,
@@ -427,13 +462,13 @@ function continuousStatFormulaProps(
     const substituted =
       stats.rows.length <= 6
         ? alignedLatex([
-            `\\sigma^2 = \\dfrac{${terms}}{${stats.n}}`,
-            `\\sigma^2 = \\dfrac{${latexNum(stats.sumaCuadradosDesvios)}}{${stats.n}} = ${latexNum(stats.varianza)}`,
-          ])
+          `\\sigma^2 = \\dfrac{${terms}}{${stats.n}}`,
+          `\\sigma^2 = \\dfrac{${latexNum(stats.sumaCuadradosDesvios)}}{${stats.n}} = ${latexNum(stats.varianza)}`,
+        ])
         : alignedLatex([
-            `\\sigma^2 = \\dfrac{1}{${stats.n}}\\sum_{i=1}^{${stats.rows.length}} f_{ai}(C_i-\\bar{x})^2`,
-            `\\sigma^2 = \\dfrac{${latexNum(stats.sumaCuadradosDesvios)}}{${stats.n}} = ${latexNum(stats.varianza)}`,
-          ])
+          `\\sigma^2 = \\dfrac{1}{${stats.n}}\\sum_{i=1}^{${stats.rows.length}} f_{ai}(C_i-\\bar{x})^2`,
+          `\\sigma^2 = \\dfrac{${latexNum(stats.sumaCuadradosDesvios)}}{${stats.n}} = ${latexNum(stats.varianza)}`,
+        ])
 
     return {
       title,
@@ -528,13 +563,13 @@ function continuousStatFormulaProps(
     const substituted =
       stats.rows.length <= 6 && stats.sumaCubosDesvios !== null
         ? alignedLatex([
-            `As = \\dfrac{\\dfrac{${terms}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 3)}}`,
-            `As = \\dfrac{${latexNum(stats.momentoCentral3 ?? 0)}}{${latexNum(stats.desvioEstandar ** 3)}} = ${latexNum(stats.coeficienteAsimetria)}`,
-          ])
+          `As = \\dfrac{\\dfrac{${terms}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 3)}}`,
+          `As = \\dfrac{${latexNum(stats.momentoCentral3 ?? 0)}}{${latexNum(stats.desvioEstandar ** 3)}} = ${latexNum(stats.coeficienteAsimetria)}`,
+        ])
         : alignedLatex([
-            `As = \\dfrac{\\dfrac{${latexNum(stats.sumaCubosDesvios ?? 0)}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 3)}}`,
-            `As = ${latexNum(stats.coeficienteAsimetria)}`,
-          ])
+          `As = \\dfrac{\\dfrac{${latexNum(stats.sumaCubosDesvios ?? 0)}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 3)}}`,
+          `As = ${latexNum(stats.coeficienteAsimetria)}`,
+        ])
 
     return {
       title,
@@ -571,13 +606,13 @@ function continuousStatFormulaProps(
     const substituted =
       stats.rows.length <= 6 && stats.sumaCuartosDesvios !== null
         ? alignedLatex([
-            `Ku = \\dfrac{\\dfrac{${terms}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 4)}}`,
-            `Ku = \\dfrac{${latexNum(stats.momentoCentral4 ?? 0)}}{${latexNum(stats.desvioEstandar ** 4)}} = ${latexNum(stats.coeficienteCurtosis)}`,
-          ])
+          `Ku = \\dfrac{\\dfrac{${terms}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 4)}}`,
+          `Ku = \\dfrac{${latexNum(stats.momentoCentral4 ?? 0)}}{${latexNum(stats.desvioEstandar ** 4)}} = ${latexNum(stats.coeficienteCurtosis)}`,
+        ])
         : alignedLatex([
-            `Ku = \\dfrac{\\dfrac{${latexNum(stats.sumaCuartosDesvios ?? 0)}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 4)}}`,
-            `Ku = ${latexNum(stats.coeficienteCurtosis)}`,
-          ])
+          `Ku = \\dfrac{\\dfrac{${latexNum(stats.sumaCuartosDesvios ?? 0)}}{${stats.n}}}{${latexNum(stats.desvioEstandar ** 4)}}`,
+          `Ku = ${latexNum(stats.coeficienteCurtosis)}`,
+        ])
 
     return {
       title,
@@ -1007,40 +1042,40 @@ function VariablesContinuasPage() {
   const fractileFromPercent =
     derived.stats && parsedFractilePercent !== null
       ? resolveGroupedContinuousFractile(
-          derived.stats.rows,
-          parsedFractilePercent,
-        )
+        derived.stats.rows,
+        parsedFractilePercent,
+      )
       : null
   const guaranteedLeftProbability =
     parsedGuaranteedPercent === null ? null : 1 - parsedGuaranteedPercent
   const guaranteedFractile =
     derived.stats &&
-    guaranteedLeftProbability !== null &&
-    guaranteedLeftProbability > Number.EPSILON
+      guaranteedLeftProbability !== null &&
+      guaranteedLeftProbability > Number.EPSILON
       ? resolveGroupedContinuousFractile(
-          derived.stats.rows,
-          guaranteedLeftProbability,
-        )
+        derived.stats.rows,
+        guaranteedLeftProbability,
+      )
       : null
   const fractileFromValue =
     derived.stats && parsedFractileValue !== null
       ? resolveCumulativeProbabilityAtValue(
-          derived.stats.rows,
-          parsedFractileValue,
-        )
+        derived.stats.rows,
+        parsedFractileValue,
+      )
       : null
   const probabilityInterval = derived.stats
     ? resolveProbabilityInterval(
-        derived.stats.rows,
-        parsedFractileValue,
-        parsedFractileUpperValue,
-      )
+      derived.stats.rows,
+      parsedFractileValue,
+      parsedFractileUpperValue,
+    )
     : null
   const orderedBetweenValues = probabilityInterval
     ? {
-        lower: probabilityInterval.lower,
-        upper: probabilityInterval.upper,
-      }
+      lower: probabilityInterval.lower,
+      upper: probabilityInterval.upper,
+    }
     : null
   const betweenProbability = probabilityInterval?.between ?? null
   const conditionalBelowLowerGivenBelowUpper =
@@ -1064,9 +1099,9 @@ function VariablesContinuasPage() {
     : null
   const guaranteedFractileFormula = derived.stats
     ? continuousGuaranteedFractileFormulaProps(
-        derived.stats.rows,
-        parsedGuaranteedPercent,
-      )
+      derived.stats.rows,
+      parsedGuaranteedPercent,
+    )
     : null
   const fractileFromValueFormula = derived.stats
     ? continuousInverseFractileFormulaProps(derived.stats.rows, parsedFractileValue)
@@ -1076,218 +1111,268 @@ function VariablesContinuasPage() {
     : null
   const fractileBetweenValuesFormula = derived.stats
     ? continuousBetweenValuesFormulaProps(
-        derived.stats.rows,
-        parsedFractileValue,
-        parsedFractileUpperValue,
-      )
+      derived.stats.rows,
+      parsedFractileValue,
+      parsedFractileUpperValue,
+    )
     : null
   const conditionalBelowLowerGivenBelowUpperFormula = derived.stats
     ? conditionalFormulaProps(
-        derived.stats.rows,
-        parsedFractileValue,
-        parsedFractileUpperValue,
-        "belowLowerGivenBelowUpper",
-      )
+      derived.stats.rows,
+      parsedFractileValue,
+      parsedFractileUpperValue,
+      "belowLowerGivenBelowUpper",
+    )
     : null
   const conditionalAboveLowerGivenBelowUpperFormula = derived.stats
     ? conditionalFormulaProps(
-        derived.stats.rows,
-        parsedFractileValue,
-        parsedFractileUpperValue,
-        "aboveLowerGivenBelowUpper",
-      )
+      derived.stats.rows,
+      parsedFractileValue,
+      parsedFractileUpperValue,
+      "aboveLowerGivenBelowUpper",
+    )
     : null
   const conditionalBelowUpperGivenAboveLowerFormula = derived.stats
     ? conditionalFormulaProps(
-        derived.stats.rows,
-        parsedFractileValue,
-        parsedFractileUpperValue,
-        "belowUpperGivenAboveLower",
-      )
+      derived.stats.rows,
+      parsedFractileValue,
+      parsedFractileUpperValue,
+      "belowUpperGivenAboveLower",
+    )
     : null
   const conditionalAboveUpperGivenAboveLowerFormula = derived.stats
     ? conditionalFormulaProps(
-        derived.stats.rows,
-        parsedFractileValue,
-        parsedFractileUpperValue,
-        "aboveUpperGivenAboveLower",
-      )
+      derived.stats.rows,
+      parsedFractileValue,
+      parsedFractileUpperValue,
+      "aboveUpperGivenAboveLower",
+    )
     : null
 
   const columns = useMemo<ColumnDef<EditableContinuousComputedRow>[]>(
-    () => [
-      {
-        accessorKey: "item",
-        header: "ID",
-        cell: ({ row }) => (
-          <span className="font-mono tabular-nums">{row.original.item}</span>
-        ),
-      },
-      {
-        id: "lowerLimit",
-        header: () => <MathHeader label="Límite inferior" math="L_{i_{inf}}" />,
-        cell: ({ row }) => (
-          <Input
-            inputMode="decimal"
-            placeholder="Ej. 40"
-            className="h-8 min-w-20 px-2 text-xs md:text-sm"
-            value={row.original.lowerLimit}
-            onChange={(event) =>
-              updateRow(row.original.id, "lowerLimit", event.currentTarget.value)
-            }
-          />
-        ),
-      },
-      {
-        id: "upperLimit",
-        header: () => <MathHeader label="Límite superior" math="L_{i_{sup}}" />,
-        cell: ({ row }) => (
-          <Input
-            inputMode="decimal"
-            placeholder="Ej. 50"
-            className="h-8 min-w-20 px-2 text-xs md:text-sm"
-            value={row.original.upperLimit}
-            onChange={(event) =>
-              updateRow(row.original.id, "upperLimit", event.currentTarget.value)
-            }
-          />
-        ),
-      },
-      {
-        id: "amplitude",
-        header: () => <MathHeader label="Amplitud" math="A_i" />,
-        cell: ({ row }) => (
-          <ComputedCell value={row.original.computed?.amplitude ?? null} />
-        ),
-      },
-      {
-        id: "classMark",
-        header: () => <MathHeader label="Marca de clase" math="C_i" />,
-        cell: ({ row }) => (
-          <ComputedCell value={row.original.computed?.classMark ?? null} />
-        ),
-      },
-      {
-        id: "absoluteFrequency",
-        header: () => <MathHeader label="Frecuencia absoluta" math="f_{ai}" />,
-        cell: ({ row }) => (
-          <Input
-            inputMode="numeric"
-            placeholder="Ej. 39"
-            className="h-8 min-w-20 px-2 text-xs md:text-sm"
-            value={row.original.frequency}
-            onChange={(event) =>
-              updateRow(row.original.id, "frequency", event.currentTarget.value)
-            }
-          />
-        ),
-        footer: ({ table }) =>
-          (table.options.meta as { totalFrequency?: number | null } | undefined)
-            ?.totalFrequency === null ||
-          (table.options.meta as { totalFrequency?: number | null } | undefined)
-            ?.totalFrequency === undefined ? null : (
-            <InlineMath
-              math={`\\sum f_{ai} = n = ${(table.options.meta as { totalFrequency: number }).totalFrequency}`}
+    () => {
+      const media = derived.stats?.media ?? null
+      const sumaProductos = derived.stats?.sumaProductos ?? null
+      const sumaCuadradosDesvios = derived.stats?.sumaCuadradosDesvios ?? null
+
+      return [
+        {
+          accessorKey: "item",
+          header: "ID",
+          cell: ({ row }) => (
+            <span className="font-mono tabular-nums">{row.original.item}</span>
+          ),
+        },
+        {
+          id: "lowerLimit",
+          header: () => <MathHeader label="Lím. inf." math="L_{i_{inf}}" />,
+          cell: ({ row }) => (
+            <Input
+              inputMode="decimal"
+              placeholder="Ej. 40"
+              className="h-7 min-w-0 px-1.5 text-[11px] md:text-xs"
+              value={row.original.lowerLimit}
+              onChange={(event) =>
+                updateRow(row.original.id, "lowerLimit", event.currentTarget.value)
+              }
             />
           ),
-      },
-      {
-        id: "relativeFrequency",
-        header: () => (
-          <MathHeader
-            label="Frecuencia relativa"
-            math={"f_i = \\frac{f_{ai}}{n}"}
-          />
-        ),
-        cell: ({ row }) => (
-          <ComputedCell
-            value={row.original.computed?.relativeFrequency ?? null}
-            formatter={fmtRelative}
-          />
-        ),
-        footer: ({ table }) =>
-          (table.options.meta as { totalFrequency?: number | null } | undefined)
-            ?.totalFrequency === null ||
-          (table.options.meta as { totalFrequency?: number | null } | undefined)
-            ?.totalFrequency === undefined ? null : (
-            <InlineMath math={"\\sum f_i = 1"} />
+        },
+        {
+          id: "upperLimit",
+          header: () => <MathHeader label="Lím sup." math="L_{i_{sup}}" />,
+          cell: ({ row }) => (
+            <Input
+              inputMode="decimal"
+              placeholder="Ej. 50"
+              className="h-7 min-w-0 px-1.5 text-[11px] md:text-xs"
+              value={row.original.upperLimit}
+              onChange={(event) =>
+                updateRow(row.original.id, "upperLimit", event.currentTarget.value)
+              }
+            />
           ),
-      },
-      {
-        id: "leftAbsoluteCumulativeFrequency",
-        header: () => (
-          <MathHeader
-            label="Frecuencia acumulada absoluta izquierda"
-            math="F_{ai}"
-          />
-        ),
-        cell: ({ row }) => (
-          <ComputedCell
-            value={row.original.computed?.leftAbsoluteCumulativeFrequency ?? null}
-          />
-        ),
-      },
-      {
-        id: "leftRelativeCumulativeFrequency",
-        header: () => (
-          <MathHeader
-            label="Frecuencia acumulada relativa izquierda"
-            math="F_i"
-          />
-        ),
-        cell: ({ row }) => (
-          <ComputedCell
-            value={row.original.computed?.leftRelativeCumulativeFrequency ?? null}
-            formatter={fmtRelative}
-          />
-        ),
-      },
-      {
-        id: "rightAbsoluteCumulativeFrequency",
-        header: () => (
-          <MathHeader
-            label="Frecuencia acumulada absoluta derecha"
-            math="G_{ai}"
-          />
-        ),
-        cell: ({ row }) => (
-          <ComputedCell
-            value={row.original.computed?.rightAbsoluteCumulativeFrequency ?? null}
-          />
-        ),
-      },
-      {
-        id: "rightRelativeCumulativeFrequency",
-        header: () => (
-          <MathHeader
-            label="Frecuencia acumulada relativa derecha"
-            math="G_i"
-          />
-        ),
-        cell: ({ row }) => (
-          <ComputedCell
-            value={row.original.computed?.rightRelativeCumulativeFrequency ?? null}
-            formatter={fmtRelative}
-          />
-        ),
-      },
-      {
-        id: "actions",
-        header: "Acciones",
-        cell: ({ row }) => (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-xs"
-            onClick={() => removeRow(row.original.id)}
-          >
-            Eliminar
-          </Button>
-        ),
-      },
-    ],
-    [removeRow, updateRow]
+        },
+        {
+          id: "absoluteFrequency",
+          header: () => <MathHeader label="Frec. abs." math="f_{ai}" />,
+          cell: ({ row }) => (
+            <Input
+              inputMode="numeric"
+              placeholder="Ej. 39"
+              className="h-7 min-w-0 px-1.5 text-[11px] md:text-xs"
+              value={row.original.frequency}
+              onChange={(event) =>
+                updateRow(row.original.id, "frequency", event.currentTarget.value)
+              }
+            />
+          ),
+          footer: ({ table }) =>
+            (table.options.meta as { totalFrequency?: number | null } | undefined)
+              ?.totalFrequency === null ||
+              (table.options.meta as { totalFrequency?: number | null } | undefined)
+                ?.totalFrequency === undefined ? null : (
+              <InlineMath
+                math={`\\sum f_{ai} = n = ${(table.options.meta as { totalFrequency: number }).totalFrequency}`}
+              />
+            ),
+        },
+        {
+          id: "amplitude",
+          header: () => <MathHeader label="Amp." math="A_i" />,
+          cell: ({ row }) => (
+            <ComputedCell value={row.original.computed?.amplitude ?? null} />
+          ),
+        },
+        {
+          id: "classMark",
+          header: () => <MathHeader label="" math="C_i" />,
+          cell: ({ row }) => (
+            <ComputedCell value={row.original.computed?.classMark ?? null} />
+          ),
+        },
+        {
+          id: "classMarkByAbsoluteFrequency",
+          header: () => <MathHeader label="" math="C_i \cdot f_{ai}" />,
+          cell: ({ row }) => {
+            const computed = row.original.computed
+            const value = computed
+              ? computed.classMark * computed.absoluteFrequency
+              : null
+
+            return <ComputedCell value={value} />
+          },
+        },
+        {
+          id: "squaredMeanDeviation",
+          header: () => (
+            <MathHeader label="" math="\left(C_i-\bar{x}\right)^2" />
+          ),
+          cell: ({ row }) => {
+            const computed = row.original.computed
+            const value =
+              computed && media !== null ? (computed.classMark - media) ** 2 : null
+
+            return <ComputedCell value={value} />
+          },
+        },
+        {
+          id: "weightedSquaredMeanDeviation",
+          header: () => (
+            <MathHeader
+              label=""
+              math="f_{ai} \cdot \left(C_i-\bar{x}\right)^2"
+              mathClassName="whitespace-nowrap"
+            />
+          ),
+          cell: ({ row }) => {
+            const computed = row.original.computed
+            const value =
+              computed && media !== null
+                ? computed.absoluteFrequency * (computed.classMark - media) ** 2
+                : null
+
+            return <ComputedCell value={value} />
+          },
+        },
+        {
+          id: "relativeFrequency",
+          header: () => (
+            <MathHeader
+              label="Frec. rel."
+              math={"f_i = \\frac{f_{ai}}{n}"}
+            />
+          ),
+          cell: ({ row }) => (
+            <ComputedCell
+              value={row.original.computed?.relativeFrequency ?? null}
+              formatter={fmtRelative}
+            />
+          ),
+          footer: ({ table }) =>
+            (table.options.meta as { totalFrequency?: number | null } | undefined)
+              ?.totalFrequency === null ||
+              (table.options.meta as { totalFrequency?: number | null } | undefined)
+                ?.totalFrequency === undefined ? null : (
+              <InlineMath math={"\\sum f_i = 1"} />
+            ),
+        },
+        {
+          id: "leftAbsoluteCumulativeFrequency",
+          header: () => (
+            <MathHeader
+              label="Frecuencia acu. abs. izquierda"
+              math="F_{ai}"
+            />
+          ),
+          cell: ({ row }) => (
+            <ComputedCell
+              value={row.original.computed?.leftAbsoluteCumulativeFrequency ?? null}
+            />
+          ),
+        },
+        {
+          id: "leftRelativeCumulativeFrequency",
+          header: () => (
+            <MathHeader
+              label="Frecuencia acu. rel. izquierda"
+              math="F_i"
+            />
+          ),
+          cell: ({ row }) => (
+            <ComputedCell
+              value={row.original.computed?.leftRelativeCumulativeFrequency ?? null}
+              formatter={fmtRelative}
+            />
+          ),
+        },
+        {
+          id: "rightAbsoluteCumulativeFrequency",
+          header: () => (
+            <MathHeader
+              label="Frecuencia acu. abs. derecha"
+              math="G_{ai}"
+            />
+          ),
+          cell: ({ row }) => (
+            <ComputedCell
+              value={row.original.computed?.rightAbsoluteCumulativeFrequency ?? null}
+            />
+          ),
+        },
+        {
+          id: "rightRelativeCumulativeFrequency",
+          header: () => (
+            <MathHeader
+              label="Frecuencia acu. rel. derecha"
+              math="G_i"
+            />
+          ),
+          cell: ({ row }) => (
+            <ComputedCell
+              value={row.original.computed?.rightRelativeCumulativeFrequency ?? null}
+              formatter={fmtRelative}
+            />
+          ),
+        },
+        {
+          id: "actions",
+          header: "Acciones",
+          cell: ({ row }) => (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-xs"
+              onClick={() => removeRow(row.original.id)}
+            >
+              Eliminar
+            </Button>
+          ),
+        },
+      ]
+    },
+    [derived.stats, removeRow, updateRow]
   )
 
   const table = useReactTable({
@@ -1330,21 +1415,21 @@ function VariablesContinuasPage() {
       <Separator />
 
       <div className="min-w-0 max-w-full overflow-x-auto rounded-md border border-border">
-        <table className="w-full min-w-[1280px] border-collapse text-xs sm:text-sm">
+        <table className="w-full min-w-[1480px] border-collapse text-xs sm:text-sm">
           <thead className="bg-muted/40">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-border">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-2 py-1.5 text-left text-[11px] font-medium tracking-wide text-muted-foreground sm:px-2.5 sm:py-2"
+                    className={`px-1 py-1 text-left text-[10px] font-medium text-muted-foreground sm:px-1.5 sm:py-1.5 ${getContinuousTableColumnClassName(header.column.id)}`.trim()}
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))}
               </tr>
@@ -1360,7 +1445,7 @@ function VariablesContinuasPage() {
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-2 py-1.5 align-middle sm:px-2.5 sm:py-2"
+                    className={`px-1 py-1 align-middle sm:px-1.5 sm:py-1.5 ${getContinuousTableColumnClassName(cell.column.id)}`.trim()}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -1375,14 +1460,14 @@ function VariablesContinuasPage() {
                 {footerGroup.headers.map((header) => (
                   <td
                     key={header.id}
-                    className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground sm:px-2.5 sm:py-2"
+                    className={`px-1 py-1 text-[10px] font-medium text-muted-foreground sm:px-1.5 sm:py-1.5 ${getContinuousTableColumnClassName(header.column.id)}`.trim()}
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.footer,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.footer,
+                        header.getContext()
+                      )}
                   </td>
                 ))}
               </tr>
@@ -1642,7 +1727,7 @@ function VariablesContinuasPage() {
                         {parsedGuaranteedPercent === null
                           ? "Ingresá un porcentaje entre 0 y 100."
                           : guaranteedLeftProbability !== null &&
-                              guaranteedLeftProbability > Number.EPSILON
+                            guaranteedLeftProbability > Number.EPSILON
                             ? `Garantizado para el ${fmtNumber(parsedGuaranteedPercent * 100, 2)}% (acumulado izquierdo: ${fmtNumber(guaranteedLeftProbability * 100, 2)}%)`
                             : "El 100% garantizado implicaría 0% acumulado a la izquierda."}
                       </div>
@@ -1722,9 +1807,9 @@ function VariablesContinuasPage() {
                       {fractileFromValue === null
                         ? "—"
                         : `${fmtNumber(fractileFromValue.probability, 4)} (${fmtPercent(
-                            fractileFromValue.probability,
-                            2,
-                          )})`}
+                          fractileFromValue.probability,
+                          2,
+                        )})`}
                     </div>
                   </div>
 
@@ -1743,9 +1828,9 @@ function VariablesContinuasPage() {
                       {fractileFromValue === null
                         ? "—"
                         : `${fmtNumber(1 - fractileFromValue.probability, 4)} (${fmtPercent(
-                            1 - fractileFromValue.probability,
-                            2,
-                          )})`}
+                          1 - fractileFromValue.probability,
+                          2,
+                        )})`}
                     </div>
                   </div>
 
@@ -1764,9 +1849,9 @@ function VariablesContinuasPage() {
                       {betweenProbability === null
                         ? "—"
                         : `${fmtNumber(betweenProbability, 4)} (${fmtPercent(
-                            betweenProbability,
-                            2,
-                          )})`}
+                          betweenProbability,
+                          2,
+                        )})`}
                     </div>
                   </div>
 
@@ -1775,7 +1860,7 @@ function VariablesContinuasPage() {
                       <h4 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         Condicionales
                       </h4>
-           
+
                     </div>
                     <div className="mt-3 grid gap-3">
                       <div className="min-w-0 rounded-md bg-background px-3 py-2">
@@ -1797,12 +1882,12 @@ function VariablesContinuasPage() {
                             : conditionalBelowLowerGivenBelowUpper === null
                               ? "—"
                               : `${fmtNumber(
-                                  conditionalBelowLowerGivenBelowUpper,
-                                  4,
-                                )} (${fmtPercent(
-                                  conditionalBelowLowerGivenBelowUpper,
-                                  2,
-                                )})`}
+                                conditionalBelowLowerGivenBelowUpper,
+                                4,
+                              )} (${fmtPercent(
+                                conditionalBelowLowerGivenBelowUpper,
+                                2,
+                              )})`}
                         </div>
                       </div>
 
@@ -1825,12 +1910,12 @@ function VariablesContinuasPage() {
                             : conditionalAboveLowerGivenBelowUpper === null
                               ? "—"
                               : `${fmtNumber(
-                                  conditionalAboveLowerGivenBelowUpper,
-                                  4,
-                                )} (${fmtPercent(
-                                  conditionalAboveLowerGivenBelowUpper,
-                                  2,
-                                )})`}
+                                conditionalAboveLowerGivenBelowUpper,
+                                4,
+                              )} (${fmtPercent(
+                                conditionalAboveLowerGivenBelowUpper,
+                                2,
+                              )})`}
                         </div>
                       </div>
 
@@ -1853,12 +1938,12 @@ function VariablesContinuasPage() {
                             : conditionalBelowUpperGivenAboveLower === null
                               ? "—"
                               : `${fmtNumber(
-                                  conditionalBelowUpperGivenAboveLower,
-                                  4,
-                                )} (${fmtPercent(
-                                  conditionalBelowUpperGivenAboveLower,
-                                  2,
-                                )})`}
+                                conditionalBelowUpperGivenAboveLower,
+                                4,
+                              )} (${fmtPercent(
+                                conditionalBelowUpperGivenAboveLower,
+                                2,
+                              )})`}
                         </div>
                       </div>
 
@@ -1881,12 +1966,12 @@ function VariablesContinuasPage() {
                             : conditionalAboveUpperGivenAboveLower === null
                               ? "—"
                               : `${fmtNumber(
-                                  conditionalAboveUpperGivenAboveLower,
-                                  4,
-                                )} (${fmtPercent(
-                                  conditionalAboveUpperGivenAboveLower,
-                                  2,
-                                )})`}
+                                conditionalAboveUpperGivenAboveLower,
+                                4,
+                              )} (${fmtPercent(
+                                conditionalAboveUpperGivenAboveLower,
+                                2,
+                              )})`}
                         </div>
                       </div>
                     </div>
