@@ -35,26 +35,6 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  tooltip="Home"
-                  isActive={pathname === "/"}
-                  render={<Link to="/" activeOptions={{ exact: true }} />}
-                >
-                  <HugeiconsIcon icon={Home01Icon} strokeWidth={2} />
-                  <span>Home</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="About"
-                  isActive={pathname === "/about"}
-                  render={<Link to="/about" />}
-                >
-                  <HugeiconsIcon icon={HelpCircleIcon} strokeWidth={2} />
-                  <span>About</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
                   tooltip="Estadísticas Variables Continuas"
                   isActive={pathname === "/estadisticas/variables-continuas"}
                   render={<Link to="/estadisticas/variables-continuas" />}
