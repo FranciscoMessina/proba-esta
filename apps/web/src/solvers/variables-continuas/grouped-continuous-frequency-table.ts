@@ -55,9 +55,9 @@ export function computeGroupedContinuousFrequencyTable(
       }
     }
 
-    if (!Number.isInteger(current.frequency) || current.frequency <= 0) {
+    if (!Number.isFinite(current.frequency) || current.frequency <= 0) {
       return {
-        error: `La fila ${index + 1} debe tener una frecuencia absoluta entera mayor que 0.`,
+        error: `La fila ${index + 1} debe tener una frecuencia absoluta numérica mayor que 0.`,
       }
     }
 

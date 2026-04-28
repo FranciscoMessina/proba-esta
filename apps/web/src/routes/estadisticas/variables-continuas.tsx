@@ -148,14 +148,14 @@ function latexInterval(
   return `\\left[${latexNum(row.lowerLimit)},\\,${latexNum(row.upperLimit)}\\right)`
 }
 
-function parsePositiveInteger(raw: string): number | null {
+function parsePositiveNumber(raw: string): number | null {
   const trimmed = raw.trim()
   if (!trimmed) {
     return null
   }
 
   const parsed = Number(trimmed)
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (!Number.isFinite(parsed) || parsed <= 0) {
     return null
   }
 
@@ -206,9 +206,9 @@ function buildDerivedContinuousTableState(
       continue
     }
 
-    const frequency = parsePositiveInteger(row.frequency)
+    const frequency = parsePositiveNumber(row.frequency)
     if (frequency === null) {
-      error ??= `La fila ${index + 1} debe tener una frecuencia absoluta entera mayor que 0.`
+      error ??= `La fila ${index + 1} debe tener una frecuencia absoluta numérica mayor que 0.`
       continue
     }
 
@@ -1199,7 +1199,7 @@ function VariablesContinuasPage() {
           header: () => <MathHeader label="Frec. abs." math="f_{ai}" />,
           cell: ({ row }) => (
             <Input
-              inputMode="numeric"
+              inputMode="decimal"
               placeholder="Ej. 39"
               className="h-7 min-w-0 px-1.5 text-[11px] md:text-xs"
               value={row.original.frequency}
